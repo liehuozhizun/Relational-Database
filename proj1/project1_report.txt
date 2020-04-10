@@ -1,0 +1,54 @@
+1. Basic information
+Team number: 1
+Student ID of submitter: 1538297
+Student Name of submitter: Yujia Li
+Other Team Members: Hang Yuan (1564348)
+
+
+2. Internal Record Format
+- Show your record format design and describe how your design satisfies O(1) field access. If not, just mention that you haven't implemented this feature.
+- Describe how you store a VarChar field.
+
+> Record format
+| #_of_valid_fileds | null_indicator | offset_of_end_of_field | valid_data_field
+len   4 bytes             x bytes              4 bytes           variable length
+val      N
+
+> Mechanism
+We define the part before actual data is header, including #_of_valid_fileds, null_indicator, and offset_of_end_of_field (multiple).
+The header length is (4 + x + 4*N), which declares the base of data.
+Then we traverse null_indicator to know how many null fields exist before the specific field i-th we want.
+Next, calculate the position of corresponding offset by (4 + x + (i-null_fields_before_i) * 4).
+After we have the offset of the end position of field we use difference between this and the previous field offset as length to obtain the specific field.
+
+
+
+3. Page Format
+- Show your page format design
+
+The page contains two major parts: data field and page info field. Data field contains all the data.
+The page info field has three parts in total. The right-most 4 bytes will store the free-space offset.
+The 4 bytes left to free-space offset is 4-byte unsigned integer to store the number of slots.
+Then each slot will contain record offset and record length to indicate the record position and length.
+
+_________________________________________________________________________
+|DATA                                                                    |
+|                                                                        |
+|                        |free-space starts                              |
+|                                                                        |
+|        (record_offset, record_length) | slot_Number | freespace_offset |
+|________________________________________________________________________|
+
+
+
+4. Implementation Detail
+- Other implementation details goes here.
+We use switch-case to read and distinguish different type of attributes in fieldDescriptor.
+When we detect the inserted record may exceed the PAGE_SIZE by if (freespace_offset + page_info_size + record_length) > PAGE_SIZE. If exceeds, appendPage().
+We use the size of file / PAGE_SIZE as well as ceil() to know the total pages.
+
+
+
+5. Other (optional)
+- Freely use this section to tell us about other things related to the project 1 (optional)
+

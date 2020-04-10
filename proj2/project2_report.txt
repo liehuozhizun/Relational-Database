@@ -1,0 +1,81 @@
+1. Basic information
+Team Number : 1
+Student ID# of Submitter: 1564348
+Name of Submitter: Hang Yuan (hyuan3)
+ID#s and Names for others on the Team: Yujia Li(1538297, yli302)
+
+
+2. Metadata
+- Show your metadata design (Tables and Columns table) and information about each column.
+The system tables which are "Tables" and "Columns" have their own structs as recordDescriptor.
+Tables has table-id(TypeInt), table-name(TypeVarChar), file-name(TypeVarChar)
+Columns has table-id(TypeInt), column-name(TypeVarChar), column-type(AttrType), column-length(TypeInt), column-position(TypeInt)
+
+When the catelogs are created, both Tables and Columns will be initiaited by the constructor with the default format.
+
+
+3. Internal Record Format
+- Show your record format design and describe how your design satisfies O(1) field access. If not, just mention that your team hasn't implemented this feature.
+- Describe how you store a VarChar field.
+- Describe how you deal with an update and delete.
+
+A record format will include a number of data fields and a null indicator for x bytes with the following data. Except for 
+TypeVarChar, all other type data will directly be stored one by one without any other information. However, TypeVarChar 
+will contains a length(TypeInt) before the real data to indicate how many bytes the VarChar has.
+
+A VarChar field will have length(TypeInt) and real data. The length indicates the length of the VarChar.
+length  |  VarChar
+  4B         xB      total: (4 + x) bytes
+
+Both update and delete will based on the record's rid. updateRecord() will first delete all relevant slot blocks(original and 
+maybe forwarded slot block) of the record. Check if the given rid's slot is forwarded slot (if position is negative, then it's
+forwarded slot). If it's forwarded, the function will go to the new rid which is provided by position(as slotNum * (-1)) and 
+length(as pageNum). Basically, there will be only one forwarding slot block so we adopt recursion to achieve this. As soon as 
+the updateRecord() finds a valid slot block, it will call insertRecord() to add it.
+
+deleteRecord() mainly do the same thing as updateRecord() without insert but it will also go check forwarding slot block as above.
+Then, it will move the other data to cover the deleted data and update the new free_space_offset by decreasing length of record.
+
+
+4. Page Format
+- Show your page format design.
+- Describe how you deal with an update and delete.
+
+The page will have pageDirectoryHeader, containg pageNum, slotNum, and free_space_offset. The next is directoryEntry, containing
+length and position/offset of each slot. Data starts at the end of file.
+
+The main idea for update and delete regarding the page is how to manage the page space. When a record is delete, the current slot
+will be memset() to null for next use. And the fowarding will be memset() too if it does have a forwarding slot.
+For deleteRecord(), the function will move the data before the deleted data backward to cover the deleted data to compact space.
+Then the free_space_offset will be updated. However, the total slotNum won't changed.
+For updateRecord(), the function will first delete the record data but keep the slot information. Then it will try to store the 
+data in the current page. If it is impossible, then the function will find another page to store but keep the new slot information
+back to the original slot.
+All these steps are completed by recursion.
+
+
+5. File Format
+- Show your file format design.
+All the files will keep their name and filename in the Tables with unique table-id. Of course, there will be a unique file created
+and managed by this table.
+All file includes the catelog will be in the format of RecordBasedFileManager's record with pageNum, slotNum, free_space_offset and
+so on.
+
+
+6. Implementation Detail
+- Other implementation details goes here.  For example:  
+- Describe your use of Forwarding Addresses, including what happens when a Forwarding Address needs to be forwarded to yet another page.
+- Describe how a scan is done, touching each record once even when there are Forwarding Addresses.
+- Describe how you determine that a previously slot on a page is empty (after record is deleted), so that the slot can be re-used for another record.  (Yes, a record's rid is supposed to be permanent, but only while the record exists.)
+We use position in slot block to detect forwarding. If position is negative, then the (position * (-1)) will be the slotNum and
+the length will be the pageNum of new RID. Then the function will recursivly to find the real slot block to do the following block.
+
+scan() will initialize itself. Then the nextRecord() will fetch the page with the matched record, then will store the next matched
+info into its private parameters for next use. Only one rid info will be stored in the parameters but not all matched data. If there 
+are no more data matched, then it will fetch the next one until there is no more matched record.
+
+We set both the length and position to be zeroes to indicate this slot block is usable.
+
+
+7. Other (optional)
+- Freely use this section to tell us about things that are related to the project 2, but not related to the other sections, such as design and implementation information for Advanced Features, if you've implemented them (optional).

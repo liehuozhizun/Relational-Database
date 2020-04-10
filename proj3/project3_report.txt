@@ -1,0 +1,68 @@
+1. Basic information
+Team number (e.g., 01) :
+#1 Student ID : 1564348
+#1 Student Name : Hang Yuan
+#2 Student ID : *
+#2 Student Name : *
+
+2. Meta-data page in an index file
+- Show your meta-data page of an index design if you have any.
+
+Meta-data contains a int32_t value to indicate the rootPageNum. Every time, when
+the function needs to scan or recursively do something, it will read the page 0
+to obtain the current root page number.
+
+
+3. Index Entry Format
+- Show your index entry design (structure).
+
+Index entry is used in NON_LEAF_PAGE.
+It is organized as a struct with a 32-bit value and int32_t number to contain
+the key value and rightChild page number.
+
+    uint8_t        int32_t
+     key[4]       rightChild
+
+
+4. Page Format
+- Show your internal-page (non-leaf node) design.
+NON_LEAF_PAGE contains a pageType(bool), a NonLeafHeader(struct), multiple
+NonLeafEntry(struct), and a space for VarChar to use(if it has TypeVarChar).
+
+NonLeafHeader has three parameters:
+     int32_t               int32_t              int32_t
+   entriesSize         freeSpaceOffset         leftChild;
+
+_______________________________________________________________________
+|pageType(bool)  |  NonLeafHeader(const)  |  NonLeafEntry(struct)     |
+|                                                                     |
+|                                *********                            |
+|                                                                     |
+|     | Varchar2                            |varChar1                 |
+|_____________________________________________________________________|
+
+- Show your leaf-page (leaf node) design.
+LEAF_PAGE contains a pageType(bool), a LeafHeader(struct), multiple
+LeafEntry(struct), and a space for VarChar to use(if it has TypeVarChar).
+
+LeafHeader has four parameters:
+    int32_t         int32_t               int32_t                  int32_t
+     prev             next              entriesSize            freeSpaceOffset
+_______________________________________________________________________
+|pageType(bool)  |  LeafHeader(const)  |  LeafEntry(struct)           |
+|                                                                     |
+|                                *********                            |
+|                                                                     |
+|     | Varchar2                            |varChar1                 |
+|_____________________________________________________________________|
+
+
+5. Implementation Detail
+- Have you implemented non-lazy deletion? Choose Yes or No: Also provide implementation details if yes.
+No
+
+- Other implementation details:
+Used a lot of recursive actions to touch the LEAF_PAGE.
+
+6. Other (optional)
+- Freely use this section to tell us about things that are related to the project 3, but not related to the other sections (optional)

@@ -1,0 +1,55 @@
+1. Basic information
+Team number (e.g., 01) : 01
+#1 Student ID : 1564348
+#1 Student Name : Hang Yuan
+#2 Student ID :
+#2 Student Name :
+#3 Student ID :
+#3 Student Name :
+
+
+2. Catalog information about Index
+- Show what catalog information you store for an index.
+
+I set index catalog as the subset of the format of column catalog information
+
+Index catalog contains:
+  {
+    table-id,        // which the record table the index belongs to
+    column-name,     // the name of the index
+    column-type,     // the type of index
+    column-length,   // the length of index
+    column-position, // the position number of the index located in the attributes
+    columnNameSize,  // set 50 as the maximum length
+  }
+
+With those information, we can tell the index's properties that will be used in
+our functions, such as Insert or Scan.
+
+
+3. Index Nested Loop Join
+- Describe how your Index Nested Loop Join works.
+The INLJoin() set several attributes of inner and outer iterator for looping.
+Basically, when the outer iterator obtains one tuple, it will setIterator for
+inner iterator to find the matched tuple. The inner iterator will search for the
+matched tuple based on the tuple given by outer iterator and break until there is
+one found.
+
+4. Implementation Detail
+- Have you added your own source file (.cc or .h)?
+No.
+
+- Have you implemented any optional features? Then, describe them here.
+No.
+
+- Other implementation details:
+The index table is created just as the other tables with the same schema.
+The format of index file is :
+        tableName . attributeName . i
+    Ex.    left   .       B       . i      =>    left.B.i
+
+
+5. Other (optional)
+- Freely use this section to tell us about things that are related to the project 4, but not related to the other sections (optional)
+
+FULL MARKS. THANK YOU.
